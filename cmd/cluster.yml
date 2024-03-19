@@ -1,0 +1,34 @@
+filer_servers:
+  - config: &cf
+      disableDirListing: false
+      disableHttp: false
+      encryptVolumeData: false
+      exposeDirectoryData: true
+      iam: true
+      maxMB: 4
+      s3: true
+      ui.deleteDir: true
+master_servers:
+  - config: &cm
+      defaultReplication: "001"
+      disableHttp: false
+      mdir: .
+      raftBootstrap: true
+      raftHashicorp: true
+      resumeState: true
+      volumePreallocate: true
+      volumeSizeLimitMB: 1024
+  - config: *cm
+  - config: *cm
+volume_servers:
+  - config: &cv
+      compactionMBps: 1000
+      dir: . # df -xshm -xtmpfs -xoverlay -HT | grep -v /dev/longhorn | grep data | awk '{print $NF}' | xargs | sed 's~ ~,~g'
+      hasSlowRead: true
+      index: leveldb
+      max: 8
+      minFreeSpace: 1
+      publicUrl: s3v00.seaweedfs.vip
+  - config:
+      !!merge <<: *cv
+      publicUrl: s3v01.seaweedfs.vip

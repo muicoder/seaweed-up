@@ -209,7 +209,7 @@ func getGithubDataFile(ctx context.Context, assets []Asset, suffix string) (file
 		return "", nil, fmt.Errorf("unable to find file with suffix %v", suffix)
 	}
 
-	log.Printf("download %v\n", filename)
+	log.Printf("download %v / %v\n", filename, url)
 	data, err = getGithubData(ctx, url)
 	if err != nil {
 		return "", nil, err

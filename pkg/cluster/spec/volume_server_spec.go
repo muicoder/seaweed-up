@@ -2,7 +2,8 @@ package spec
 
 import (
 	"bytes"
-	"strconv"
+	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -30,22 +31,13 @@ type FolderSpec struct {
 }
 
 func (vs *VolumeServerSpec) WriteToBuffer(masters []string, buf *bytes.Buffer) {
-	addToBuffer(buf, "ip", vs.Ip)
-	addToBuffer(buf, "ip.bind", vs.IpBind)
-	addToBufferInt(buf, "port", vs.Port, 8888)
-	addToBufferInt(buf, "port.grpc", vs.PortGrpc, 10000+vs.Port)
-	addToBuffer(buf, "mserver", strings.Join(masters, ","))
-	var dirs, disks, maxes []string
-	for _, folder := range vs.Folders {
-		dirs = append(dirs, folder.Folder)
-		diskType := "hdd"
-		if folder.DiskType != "" {
-			diskType = folder.DiskType
-		}
-		disks = append(disks, diskType)
-		maxes = append(maxes, strconv.Itoa(folder.Max))
+	spec := vs
+	defOptions := []string{fmt.Sprintf("mserver=%v", strings.Join(masters, ",")), fmt.Sprintf("port=%v", spec.Port), fmt.Sprintf("metricsPort=%v", 20000+spec.Port)}
+	addOptions := make([]string, 0)
+	for k, v := range spec.Config {
+		addOptions = append(addOptions, fmt.Sprintf("%s=%v", k, v))
 	}
-	addToBuffer(buf, "dir", strings.Join(dirs, ","))
-	addToBuffer(buf, "max", strings.Join(maxes, ","))
-	addToBuffer(buf, "disks", strings.Join(disks, ","))
+	slices.Sort(addOptions)
+	buf.WriteString(strings.Join(defOptions, "\n") + "\n")
+	buf.WriteString(strings.Join(addOptions, "\n") + "\n")
 }

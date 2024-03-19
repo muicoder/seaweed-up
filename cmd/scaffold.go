@@ -25,5 +25,5 @@ func ScaffoldCommand() *coral.Command {
 	return command
 }
 
-//go:embed cluster.yaml
+//go:embed cluster.yml
 var clusterYaml string

@@ -17,8 +17,8 @@ type Manager struct {
 	ForceRestart       bool
 
 	skipConfig bool
-	skipEnable bool
-	skipStart  bool
+	SkipEnable bool
+	SkipStart  bool
 	sudoPass   string
 	confDir    string
 	dataDir    string
@@ -27,8 +27,8 @@ type Manager struct {
 func NewManager() *Manager {
 	return &Manager{
 		skipConfig: false,
-		skipEnable: false,
-		skipStart:  false,
+		SkipEnable: false,
+		SkipStart:  false,
 		Version:    "",
 		sudoPass:   "",
 	}

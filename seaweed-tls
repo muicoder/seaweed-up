@@ -1,0 +1,36 @@
+#!/bin/sh
+set -e
+readonly CERTs=.
+readonly CONFd=/etc/seaweedfs
+readonly ROOTd=/opt/seaweedfs
+IPs=$(
+  {
+    if [ $# -gt 0 ]; then
+      echo "$*"
+    else
+      {
+        if [ -s seaweed-up.yaml ] && [ "$PWD" != $ROOTd ]; then
+          cp -u seaweed-up.yaml $ROOTd/seaweed-up.yaml
+        fi
+        grep ip: $ROOTd/seaweed-up.yaml 2>/dev/null || hostname -I 2>/dev/null | sed 's~ ~\n~g'
+      } | awk '{print $NF}'
+    fi
+  } | sort | uniq | xargs | sed 's~ ~,~g'
+)
+
+echo "$CONFd <= $IPs"
+
+certstrap "--depot-path=$CERTs" init \
+  --passphrase= --cn=SeaweedFS --expires="10 year"
+for cn in filer master volume s3 msg_broker client; do
+  certstrap "--depot-path=$CERTs" request-cert \
+    --passphrase= --cn=SeaweedFS.$cn --ip "$IPs"
+  certstrap "--depot-path=$CERTs" sign \
+    --passphrase= --CA=SeaweedFS --expires="3 year" SeaweedFS.$cn
+done && find $CERTs -type f -name "*.crt" | while read -r crt; do echo "$crt" && openssl x509 -in "$crt" -noout -text | grep -E '(Subject|Address):'; done
+
+echo W2FjY2Vzc10KdWkgPSB0cnVlCgpbZ3JwY10KY2EgPSAiL2V0Yy9zZWF3ZWVkZnMvU2Vhd2VlZEZTLmNydCIKCltncnBjLnZvbHVtZV0KY2VydCA9ICIvZXRjL3NlYXdlZWRmcy9TZWF3ZWVkRlMudm9sdW1lLmNydCIKa2V5ID0gIi9ldGMvc2Vhd2VlZGZzL1NlYXdlZWRGUy52b2x1bWUua2V5IgpbZ3JwYy5tYXN0ZXJdCmNlcnQgPSAiL2V0Yy9zZWF3ZWVkZnMvU2Vhd2VlZEZTLm1hc3Rlci5jcnQiCmtleSA9ICIvZXRjL3NlYXdlZWRmcy9TZWF3ZWVkRlMubWFzdGVyLmtleSIKW2dycGMuZmlsZXJdCmNlcnQgPSAiL2V0Yy9zZWF3ZWVkZnMvU2Vhd2VlZEZTLmZpbGVyLmNydCIKa2V5ID0gIi9ldGMvc2Vhd2VlZGZzL1NlYXdlZWRGUy5maWxlci5rZXkiCgpbZ3JwYy5zM10KY2VydCA9ICIvZXRjL3NlYXdlZWRmcy9TZWF3ZWVkRlMuczMuY3J0IgprZXkgPSAiL2V0Yy9zZWF3ZWVkZnMvU2Vhd2VlZEZTLnMzLmtleSIKW2dycGMubXNnX2Jyb2tlcl0KY2VydCA9ICIvZXRjL3NlYXdlZWRmcy9TZWF3ZWVkRlMubXNnX2Jyb2tlci5jcnQiCmtleSA9ICIvZXRjL3NlYXdlZWRmcy9TZWF3ZWVkRlMubXNnX2Jyb2tlci5rZXkiCgpbZ3JwYy5jbGllbnRdCmNlcnQgPSAiL2V0Yy9zZWF3ZWVkZnMvU2Vhd2VlZEZTLmNsaWVudC5jcnQiCmtleSA9ICIvZXRjL3NlYXdlZWRmcy9TZWF3ZWVkRlMuY2xpZW50LmtleSIK | base64 -d >security.toml
+tar -zcf "${0##*/}.tgz" SeaweedFS*.crt SeaweedFS*.key security.toml && rm -fv SeaweedFS.* security.toml
+for ip in $(echo "$IPs" | sed 's~,~\n~g'); do
+  scp "${0##*/}.tgz" "$ip:$ROOTd/${0##*/}" && ssh "$ip" -C "hostname && tar -xzf $ROOTd/${0##*/} -C$CONFd"
+done

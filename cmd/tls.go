@@ -51,7 +51,7 @@ func createCertificateCommand() *coral.Command {
 		keyUsage := x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment
 
 		notBefore := time.Now()
-		notAfter := notBefore.Add(365 * 24 * time.Hour)
+		notAfter := notBefore.AddDate(10, 0, 0)
 
 		serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 		serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -65,7 +65,7 @@ func createCertificateCommand() *coral.Command {
 			NotAfter:     notAfter,
 
 			Subject: pkix.Name{
-				CommonName: "seaweed-up!",
+				CommonName: "SeaweedFS",
 			},
 
 			KeyUsage:              keyUsage,

@@ -24,7 +24,7 @@ func CleanCommand() *coral.Command {
 		SilenceUsage: true,
 	}
 	var fileName string
-	cmd.Flags().StringVarP(&fileName, "file", "f", "", "configuration file")
+	cmd.Flags().StringVarP(&fileName, "file", "f", os.Args[0]+".yaml", "configuration file")
 	cmd.Flags().StringVarP(&m.User, "user", "u", utils.CurrentUser(), "The user name to login via SSH. The user must has root (or sudo) privilege.")
 	cmd.Flags().IntVarP(&m.SshPort, "port", "p", 22, "The port to SSH.")
 	cmd.Flags().StringVarP(&m.IdentityFile, "identity_file", "i", m.IdentityFile, "The path of the SSH identity file. If specified, public key authentication will be used.")
