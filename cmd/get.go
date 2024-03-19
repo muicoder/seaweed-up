@@ -29,7 +29,7 @@ func GetCommand() *coral.Command {
 	command.Flags().StringVarP(&version, "version", "v", "", fmt.Sprintf("Version of %s to install", title))
 	command.Flags().StringVar(&arch, "arch", "amd64", "Target architecture")
 	command.Flags().StringVar(&os, "os", "linux", "Target OS")
-	command.Flags().StringVarP(&destination, "dest", "d", expandPath("~/bin"), "Target directory for the downloaded archive or binary")
+	command.Flags().StringVarP(&destination, "dest", "d", expandPath("/usr/local/bin"), "Target directory for the downloaded archive or binary")
 
 	command.RunE = func(command *coral.Command, args []string) error {
 

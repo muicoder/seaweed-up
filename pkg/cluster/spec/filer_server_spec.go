@@ -2,6 +2,8 @@ package spec
 
 import (
 	"bytes"
+	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -27,13 +29,13 @@ type FilerServerSpec struct {
 }
 
 func (f *FilerServerSpec) WriteToBuffer(masters []string, buf *bytes.Buffer) {
-	addToBuffer(buf, "ip", f.Ip)
-	addToBuffer(buf, "ip.bind", f.IpBind)
-	addToBufferInt(buf, "port", f.Port, 8888)
-	addToBufferInt(buf, "port.grpc", f.PortGrpc, 10000+f.Port)
-	addToBuffer(buf, "master", strings.Join(masters, ","))
-	addToBufferBool(buf, "s3", f.S3, false)
-	addToBufferInt(buf, "s3.port", f.S3Port, 8333)
-	addToBufferBool(buf, "webdav", f.Webdav, false)
-	addToBufferInt(buf, "webdav.port", f.WebdavPort, 7333)
+	spec := f
+	defOptions := []string{fmt.Sprintf("master=%v", strings.Join(masters, ",")), fmt.Sprintf("port=%v", spec.Port), fmt.Sprintf("metricsPort=%v", 20000+spec.Port)}
+	addOptions := make([]string, 0)
+	for k, v := range spec.Config {
+		addOptions = append(addOptions, fmt.Sprintf("%s=%v", k, v))
+	}
+	slices.Sort(addOptions)
+	buf.WriteString(strings.Join(defOptions, "\n") + "\n")
+	buf.WriteString(strings.Join(addOptions, "\n") + "\n")
 }

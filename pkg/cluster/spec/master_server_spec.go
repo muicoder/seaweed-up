@@ -3,6 +3,7 @@ package spec
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -21,29 +22,13 @@ type MasterServerSpec struct {
 }
 
 func (masterSpec *MasterServerSpec) WriteToBuffer(masters []string, buf *bytes.Buffer) {
-	addToBuffer(buf, "mdir", ".")
-	addToBuffer(buf, "peers", strings.Join(masters, ","))
-	addToBuffer(buf, "ip", masterSpec.Ip)
-	addToBuffer(buf, "ip.bind", masterSpec.IpBind)
-	addToBufferInt(buf, "port", masterSpec.Port, 9333)
-	addToBufferInt(buf, "port.grpc", masterSpec.PortGrpc, 10000+masterSpec.Port)
-	addToBufferInt(buf, "volumeSizeLimitMB", masterSpec.VolumeSizeLimitMB, 30000)
-	addToBuffer(buf, "defaultReplication", masterSpec.DefaultReplication)
-
-}
-
-func addToBuffer(buf *bytes.Buffer, name, value string) {
-	if value != "" {
-		buf.WriteString(fmt.Sprintf("%s=%s\n", name, value))
+	spec := masterSpec
+	defOptions := []string{fmt.Sprintf("peers=%v", strings.Join(masters, ",")), fmt.Sprintf("port=%v", spec.Port), fmt.Sprintf("metricsPort=%v", 20000+spec.Port)}
+	addOptions := make([]string, 0)
+	for k, v := range spec.Config {
+		addOptions = append(addOptions, fmt.Sprintf("%s=%v", k, v))
 	}
-}
-func addToBufferInt(buf *bytes.Buffer, name string, value, defaultValue int) {
-	if value != 0 && value != defaultValue {
-		buf.WriteString(fmt.Sprintf("%s=%d\n", name, value))
-	}
-}
-func addToBufferBool(buf *bytes.Buffer, name string, value, defaultValue bool) {
-	if value != defaultValue {
-		buf.WriteString(fmt.Sprintf("%s=%v\n", name, value))
-	}
+	slices.Sort(addOptions)
+	buf.WriteString(strings.Join(defOptions, "\n") + "\n")
+	buf.WriteString(strings.Join(addOptions, "\n") + "\n")
 }

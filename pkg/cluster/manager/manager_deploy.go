@@ -85,8 +85,8 @@ func (m *Manager) prepare(specification *spec.Specification) {
 		password := utils.PromptForPassword("Input sudo password: ")
 		m.sudoPass = password
 	}
-	m.confDir = utils.Nvl(specification.GlobalOptions.ConfigDir, "/etc/seaweed")
-	m.dataDir = utils.Nvl(specification.GlobalOptions.DataDir, "/opt/seaweed")
+	m.confDir = "/etc/seaweedfs"
+	m.dataDir = "/opt/seaweedfs"
 	for _, masterSpec := range specification.MasterServers {
 		masterSpec.VolumeSizeLimitMB = utils.NvlInt(masterSpec.VolumeSizeLimitMB, specification.GlobalOptions.VolumeSizeLimitMB, 5000)
 		masterSpec.DefaultReplication = utils.Nvl(masterSpec.DefaultReplication, specification.GlobalOptions.Replication, "")
@@ -121,8 +121,8 @@ func (m *Manager) deployComponentInstance(op operator.CommandOperator, component
 		"ConfigDir":         m.confDir,
 		"DataDir":           m.dataDir,
 		"TmpDir":            dir,
-		"SkipEnable":        m.skipEnable,
-		"SkipStart":         m.skipStart,
+		"SkipEnable":        m.SkipEnable,
+		"SkipStart":         m.SkipStart,
 		"ForceRestart":      m.ForceRestart,
 		"Version":           m.Version,
 		"ProxyConfig":       "",
